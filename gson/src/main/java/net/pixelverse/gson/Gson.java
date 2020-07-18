@@ -1000,7 +1000,7 @@ public class Gson {
     if (json == null) {
       return null;
     }
-    return (T) fromJson(new JsonTreeReader(json), typeOfT);
+    return (T) fromJson(json.toString(), typeOfT);
   }
 
   static class FutureTypeAdapter<T> extends TypeAdapter<T> {

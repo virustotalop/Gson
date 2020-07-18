@@ -16,6 +16,7 @@
 
 package net.pixelverse.gson;
 
+import com.google.gson.internal.bind.JsonTreeReader;
 import com.google.gson.internal.bind.JsonTreeWriter;
 import net.pixelverse.gson.internal.ConstructorConstructor;
 import net.pixelverse.gson.internal.Excluder;
@@ -210,6 +211,9 @@ public final class SuperGson extends Gson {
      */
     @SuppressWarnings("unchecked")
     public <T> T fromJson(JsonReader reader, Type typeOfT) throws JsonIOException, JsonSyntaxException {
+        if (reader.getClass() != JsonReader.class) {
+            throw new Error(reader.getClass().getName() + " is not supported.");
+        }
         boolean isEmpty = true;
         boolean oldLenient = reader.isLenient();
         reader.setLenient(true);
@@ -223,6 +227,7 @@ public final class SuperGson extends Gson {
                 reader.skipValue();
                 reader.nextName();
                 typeOfT = Class.forName(reader.nextString());
+                System.out.println("Trying to reset " + reader.getClass().getName());
                 JsonReaderUtil.restoreReaderInformation(reader, info);
             }
             reader.nextName();
