@@ -41,9 +41,13 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends net.pixelverse.gson.TypeAda
     return delegate.read(in);
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
   @Override
   public void write(JsonWriter out, T value) throws IOException {
+    write(out, value, true);
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public void write(JsonWriter out, T value, boolean includeType) throws IOException {
     // Order of preference for choosing type adapters
     // First preference: a type adapter registered for the runtime type
     // Second preference: a type adapter registered for the declared type
@@ -67,7 +71,7 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends net.pixelverse.gson.TypeAda
       }
     }
 
-    if (context instanceof SuperGson && value != null) {
+    if (context instanceof SuperGson && value != null && includeType) {
       out.beginObject();
       out.name("type");
       out.value(value.getClass().getName());

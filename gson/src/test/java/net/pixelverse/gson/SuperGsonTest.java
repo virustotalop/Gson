@@ -2,6 +2,7 @@ package net.pixelverse.gson;
 
 import com.google.gson.JsonObject;
 import junit.framework.TestCase;
+import net.pixelverse.gson.common.TestTypes;
 
 import java.util.*;
 
@@ -23,6 +24,11 @@ public class SuperGsonTest extends TestCase {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("list", new ArrayList<String>(Arrays.asList("hello")));
         doSerializationTest(map);
+    }
+
+    public void testList() {
+        List<TestTypes.ComplexClass> objects = new ArrayList<TestTypes.ComplexClass>(Arrays.asList(new TestTypes.ComplexClass(), new TestTypes.ComplexClass()));
+        doSerializationTest(objects);
     }
 
     private <T> void doSerializationTest(T object) {

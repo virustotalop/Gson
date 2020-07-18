@@ -52,7 +52,7 @@ public final class ArrayTypeAdapter<E> extends TypeAdapter<Object> {
   };
 
   private final Class<E> componentType;
-  private final TypeAdapter<E> componentTypeAdapter;
+  private final TypeAdapterRuntimeTypeWrapper<E> componentTypeAdapter;
 
   public ArrayTypeAdapter(Gson context, TypeAdapter<E> componentTypeAdapter, Class<E> componentType) {
     this.componentTypeAdapter =
@@ -92,7 +92,7 @@ public final class ArrayTypeAdapter<E> extends TypeAdapter<Object> {
     out.beginArray();
     for (int i = 0, length = Array.getLength(array); i < length; i++) {
       E value = (E) Array.get(array, i);
-      componentTypeAdapter.write(out, value);
+      componentTypeAdapter.write(out, value, false);
     }
     out.endArray();
   }
