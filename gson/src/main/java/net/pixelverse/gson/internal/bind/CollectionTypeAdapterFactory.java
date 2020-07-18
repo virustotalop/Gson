@@ -94,20 +94,7 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
       in.beginArray();
       while (in.hasNext()) {
         if (context instanceof SuperGson) {
-          in.beginObject();
-          in.nextName();
-          Class realType = null;
-          try {
-            realType = Class.forName(in.nextString());
-          } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-          }
-          in.nextName();
-          TypeAdapter baseAdapter = context.getAdapter(realType);
-          TypeAdapter adapter = new TypeAdapterRuntimeTypeWrapper(context, baseAdapter, realType);
-          E instance = (E) adapter.read(in);
-          in.endObject();
-          collection.add(instance);
+          collection.add(((SuperGson) context).<E>fromJson(in, null));
         } else {
           E instance = elementTypeAdapter.read(in);
           collection.add(instance);

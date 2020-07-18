@@ -201,20 +201,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
 
     private V parseValue(JsonReader in) throws IOException {
       if (context instanceof SuperGson) {
-        in.beginObject();
-        in.nextName();
-        Class realClass = null;
-        try {
-          realClass = Class.forName(in.nextString());
-        } catch (ClassNotFoundException e) {
-
-        }
-        TypeAdapter adapter = context.getAdapter(realClass);
-        TypeAdapter<V> wrapper = new TypeAdapterRuntimeTypeWrapper(context, adapter, realClass);
-        in.nextName();
-        V value = wrapper.read(in);
-        in.endObject();
-        return value;
+        return context.fromJson(in, null);
       } else {
         return valueTypeAdapter.read(in);
       }

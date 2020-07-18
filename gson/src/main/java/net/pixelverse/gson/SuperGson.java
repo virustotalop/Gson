@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import com.google.gson.*;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 /**
  * This is the main class for using Gson. Gson is typically used by first constructing a
@@ -186,6 +187,11 @@ public final class SuperGson extends Gson {
         return super.fromJson(json, (Type) null);
     }
 
+    @Override
+    public <T> T fromJson(JsonElement json, Type typeOfT) throws JsonSyntaxException {
+        return super.fromJson(json.toString(), typeOfT);
+    }
+
     public <T> T fromJson(String json) throws JsonSyntaxException, JsonIOException {
         return super.fromJson(json, (Type) null);
     }
@@ -210,12 +216,22 @@ public final class SuperGson extends Gson {
         try {
             isEmpty = false;
             reader.beginObject();
-            reader.nextName();
-            typeOfT = Class.forName(reader.nextString());
+            Map<String, Object> info = JsonReaderUtil.getReaderInformation(reader);
+            if (reader.nextName().equals("type")) {
+                typeOfT = Class.forName(reader.nextString());
+            } else {
+                reader.skipValue();
+                reader.nextName();
+                typeOfT = Class.forName(reader.nextString());
+                JsonReaderUtil.restoreReaderInformation(reader, info);
+            }
             reader.nextName();
             TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
             TypeAdapter<T> typeAdapter = getAdapter(typeToken);
             T object = typeAdapter.read(reader);
+            while (reader.peek() != JsonToken.END_OBJECT) {
+                reader.skipValue();
+            }
             reader.endObject();
             return object;
         } catch (EOFException e) {
@@ -237,7 +253,10 @@ public final class SuperGson extends Gson {
             error.initCause(e);
             throw error;
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new JsonSyntaxException(e);
+        } catch (IllegalAccessException e) {
+            throw new JsonSyntaxException(e);
+        } catch (NoSuchFieldException e) {
             throw new JsonSyntaxException(e);
         } finally {
             reader.setLenient(oldLenient);
