@@ -7,10 +7,6 @@ sourceCompatibility = 1.6
 targetCompatibility = 1.6
 archivesBaseName = "Gson"
 
-tasks.withType(Jar) {
-    destinationDir = file("C:\\Users\\Justin\\Documents\\code\\Pixelverse\\common\\libs")
-}
-
 dependencies {
     testCompile "junit:junit:4.12"
     // https://mvnrepository.com/artifact/com.google.code.gson/gson
