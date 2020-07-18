@@ -229,13 +229,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           if (field == null || !field.deserialized) {
             in.skipValue();
           } else if (context instanceof SuperGson) {
-            in.beginObject();
-            in.nextName();
-            Class realType = Class.forName(in.nextString());
-            TypeAdapter adapter = context.getAdapter(realType);
-            in.nextName();
-            field.set(instance, adapter.read(in));
-            in.endObject();
+            field.set(instance, ((SuperGson) context).fromJson(in, null));
           } else {
             field.read(in, instance);
           }
@@ -243,8 +237,6 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
       } catch (IllegalStateException e) {
         throw new JsonSyntaxException(e);
       } catch (IllegalAccessException e) {
-        throw new AssertionError(e);
-      } catch (ClassNotFoundException e) {
         throw new AssertionError(e);
       }
       in.endObject();
