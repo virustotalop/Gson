@@ -16,35 +16,26 @@
 
 package net.pixelverse.gson;
 
+import com.google.gson.*;
 import com.google.gson.internal.bind.JsonTreeReader;
-import com.google.gson.internal.bind.JsonTreeWriter;
-import net.pixelverse.gson.internal.*;
-import net.pixelverse.gson.internal.bind.*;
-import net.pixelverse.gson.internal.bind.ArrayTypeAdapter;
-import net.pixelverse.gson.internal.bind.CollectionTypeAdapterFactory;
-import net.pixelverse.gson.internal.bind.DateTypeAdapter;
-import net.pixelverse.gson.internal.bind.JsonAdapterAnnotationTypeAdapterFactory;
-import net.pixelverse.gson.internal.bind.MapTypeAdapterFactory;
-import net.pixelverse.gson.internal.bind.ReflectiveTypeAdapterFactory;
-import net.pixelverse.gson.internal.bind.SqlDateTypeAdapter;
-import net.pixelverse.gson.internal.bind.TimeTypeAdapter;
-import net.pixelverse.gson.internal.bind.TypeAdapters;
-import net.pixelverse.gson.reflect.TypeToken;
-import com.google.gson.stream.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import net.pixelverse.gson.annotations.Expose;
 import net.pixelverse.gson.annotations.Since;
+import net.pixelverse.gson.internal.Excluder;
+import net.pixelverse.gson.reflect.TypeToken;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
-import com.google.gson.*;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is the main class for using Gson. Gson is typically used by first constructing a
