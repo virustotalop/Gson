@@ -48,6 +48,15 @@ public class JsonReaderUtil {
         data.put("baseStackSize", getField("stackSize").get(reader));
         data.put("basePathNames", Arrays.copyOf((String[]) getField("pathNames").get(reader), 32));
         data.put("basePathIndices", Arrays.copyOf((int[]) getField("pathIndices").get(reader), 32));
+        Gson gson = new Gson();
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (entry.getValue() == null) {
+                continue;
+            }
+            String json = gson.toJson(entry.getValue());
+            Object newValue = gson.fromJson(json, entry.getValue().getClass());
+            entry.setValue(newValue);
+        }
         return data;
     }
 

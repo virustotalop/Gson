@@ -18,10 +18,7 @@ package net.pixelverse.gson;
 
 import com.google.gson.internal.bind.JsonTreeReader;
 import com.google.gson.internal.bind.JsonTreeWriter;
-import net.pixelverse.gson.internal.ConstructorConstructor;
-import net.pixelverse.gson.internal.Excluder;
-import net.pixelverse.gson.internal.Primitives;
-import net.pixelverse.gson.internal.Streams;
+import net.pixelverse.gson.internal.*;
 import net.pixelverse.gson.internal.bind.*;
 import net.pixelverse.gson.internal.bind.ArrayTypeAdapter;
 import net.pixelverse.gson.internal.bind.CollectionTypeAdapterFactory;
@@ -211,26 +208,21 @@ public final class SuperGson extends Gson {
      */
     @SuppressWarnings("unchecked")
     public <T> T fromJson(JsonReader reader, Type typeOfT) throws JsonIOException, JsonSyntaxException {
-        if (reader.getClass() != JsonReader.class) {
-            throw new Error(reader.getClass().getName() + " is not supported.");
-        }
         boolean isEmpty = true;
         boolean oldLenient = reader.isLenient();
         reader.setLenient(true);
         try {
+            reader.peek();
             isEmpty = false;
-            reader.beginObject();
             Map<String, Object> info = JsonReaderUtil.getReaderInformation(reader);
+            JsonObject json = new SkippingJsonAdapter("data").read(reader).getAsJsonObject();
+            typeOfT = Class.forName(json.get("type").getAsString());
+            JsonReaderUtil.restoreReaderInformation(reader, info);
+            reader.beginObject();
             if (reader.nextName().equals("type")) {
-                typeOfT = Class.forName(reader.nextString());
-            } else {
-                reader.skipValue();
+                reader.nextString();
                 reader.nextName();
-                typeOfT = Class.forName(reader.nextString());
-                System.out.println("Trying to reset " + reader.getClass().getName());
-                JsonReaderUtil.restoreReaderInformation(reader, info);
             }
-            reader.nextName();
             TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
             TypeAdapter<T> typeAdapter = getAdapter(typeToken);
             T object = typeAdapter.read(reader);
