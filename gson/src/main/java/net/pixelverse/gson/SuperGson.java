@@ -185,11 +185,6 @@ public final class SuperGson extends Gson {
         return super.fromJson(json, (Type) null);
     }
 
-    @Override
-    public <T> T fromJson(JsonElement json, Type typeOfT) throws JsonSyntaxException {
-        return super.fromJson(json.toString(), typeOfT);
-    }
-
     public <T> T fromJson(String json) throws JsonSyntaxException, JsonIOException {
         return super.fromJson(json, (Type) null);
     }
@@ -214,10 +209,9 @@ public final class SuperGson extends Gson {
         try {
             reader.peek();
             isEmpty = false;
-            Map<String, Object> info = JsonReaderUtil.getReaderInformation(reader);
-            JsonObject json = new SkippingJsonAdapter("data").read(reader).getAsJsonObject();
+            JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
             typeOfT = Class.forName(json.get("type").getAsString());
-            JsonReaderUtil.restoreReaderInformation(reader, info);
+            reader = new JsonTreeReader(json);
             reader.beginObject();
             if (reader.nextName().equals("type")) {
                 reader.nextString();
@@ -250,10 +244,6 @@ public final class SuperGson extends Gson {
             error.initCause(e);
             throw error;
         } catch (ClassNotFoundException e) {
-            throw new JsonSyntaxException(e);
-        } catch (IllegalAccessException e) {
-            throw new JsonSyntaxException(e);
-        } catch (NoSuchFieldException e) {
             throw new JsonSyntaxException(e);
         } finally {
             reader.setLenient(oldLenient);

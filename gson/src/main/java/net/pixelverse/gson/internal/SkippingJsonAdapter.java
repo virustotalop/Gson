@@ -13,8 +13,8 @@ import java.util.Map;
 public class SkippingJsonAdapter extends TypeAdapter<JsonElement> {
     private List<String> toSkip;
 
-    public SkippingJsonAdapter(String...strings) {
-        toSkip = Arrays.asList(strings);
+    public SkippingJsonAdapter(String...skippedNames) {
+        toSkip = Arrays.asList(skippedNames);
     }
 
     @Override public JsonElement read(JsonReader in) throws IOException {
