@@ -26,8 +26,8 @@ public class SuperGsonTest extends TestCase {
     }
 
     public void testMap() {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("list", new ArrayList<String>(Arrays.asList("hello")));
+        Map<String, ArrayList<String>> map = new HashMap<String, ArrayList<String>>();
+        map.put("list", new ArrayList<String>(Collections.singletonList("hello")));
         doSerializationTest(map);
     }
 

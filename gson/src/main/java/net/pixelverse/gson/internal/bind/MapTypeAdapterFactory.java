@@ -24,10 +24,7 @@ import com.google.gson.JsonSyntaxException;
 import net.pixelverse.gson.SuperGson;
 import net.pixelverse.gson.TypeAdapter;
 import net.pixelverse.gson.TypeAdapterFactory;
-import net.pixelverse.gson.internal.$Gson$Types;
-import net.pixelverse.gson.internal.ConstructorConstructor;
-import net.pixelverse.gson.internal.ObjectConstructor;
-import net.pixelverse.gson.internal.Streams;
+import net.pixelverse.gson.internal.*;
 import net.pixelverse.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -147,7 +144,8 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
   private final class Adapter<K, V> extends TypeAdapter<Map<K, V>> {
     private final Gson context;
     private final TypeAdapter<K> keyTypeAdapter;
-    private final TypeAdapter<V> valueTypeAdapter;
+    private final TypeAdapterRuntimeTypeWrapper<V> valueTypeAdapter;
+    private final Type valueType;
     private final ObjectConstructor<? extends Map<K, V>> constructor;
 
     public Adapter(Gson context, Type keyType, TypeAdapter<K> keyTypeAdapter,
@@ -156,6 +154,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
       this.context = context;
       this.keyTypeAdapter =
         new TypeAdapterRuntimeTypeWrapper<K>(context, keyTypeAdapter, keyType);
+      this.valueType = valueType;
       this.valueTypeAdapter =
         new TypeAdapterRuntimeTypeWrapper<V>(context, valueTypeAdapter, valueType);
       this.constructor = constructor;
@@ -201,7 +200,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
 
     private V parseValue(JsonReader in) throws IOException {
       if (context instanceof SuperGson) {
-        return context.fromJson(in, null);
+        return context.fromJson(in, valueType);
       } else {
         return valueTypeAdapter.read(in);
       }
