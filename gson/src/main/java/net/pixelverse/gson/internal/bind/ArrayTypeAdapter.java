@@ -27,6 +27,7 @@ import net.pixelverse.gson.Gson;
 import net.pixelverse.gson.TypeAdapter;
 import net.pixelverse.gson.TypeAdapterFactory;
 import net.pixelverse.gson.internal.$Gson$Types;
+import net.pixelverse.gson.internal.Primitives;
 import net.pixelverse.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -50,6 +51,7 @@ public final class ArrayTypeAdapter<E> extends TypeAdapter<Object> {
               gson, componentTypeAdapter, $Gson$Types.getRawType(componentType));
     }
   };
+
 
   private final Class<E> componentType;
   private final TypeAdapterRuntimeTypeWrapper<E> componentTypeAdapter;
@@ -92,7 +94,7 @@ public final class ArrayTypeAdapter<E> extends TypeAdapter<Object> {
     out.beginArray();
     for (int i = 0, length = Array.getLength(array); i < length; i++) {
       E value = (E) Array.get(array, i);
-      componentTypeAdapter.write(out, value, false);
+      componentTypeAdapter.write(out, value, value != null && !Primitives.wrap(value.getClass()).equals(Primitives.wrap(componentType)));
     }
     out.endArray();
   }

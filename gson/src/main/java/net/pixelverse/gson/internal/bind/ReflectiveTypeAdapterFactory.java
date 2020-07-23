@@ -101,7 +101,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     }
 
     ObjectConstructor<T> constructor = constructorConstructor.get(type);
-    return new Adapter<T>(gson, constructor, getBoundFields(gson, type, raw));
+    return new Adapter<T>(gson, type.getType(), constructor, getBoundFields(gson, type, raw));
   }
 
   private ReflectiveTypeAdapterFactory.BoundField createBoundField(
@@ -124,9 +124,13 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
       @Override void write(JsonWriter writer, Object value)
           throws IOException, IllegalAccessException {
         Object fieldValue = field.get(value);
-        TypeAdapter t = jsonAdapterPresent ? typeAdapter
-            : new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType.getType());
-        t.write(writer, fieldValue);
+        if (jsonAdapterPresent) {
+          ((TypeAdapter<Object>)typeAdapter).write(writer, fieldValue);
+        } else {
+          boolean shouldSaveType = fieldValue != null && !Primitives.wrap(field.getType()).equals(Primitives.wrap(fieldValue.getClass()));
+          TypeAdapterRuntimeTypeWrapper t = new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType.getType());
+          t.write(writer, fieldValue, shouldSaveType);
+        }
       }
       @Override void read(JsonReader reader, Object value)
           throws IOException, IllegalAccessException {
@@ -144,6 +148,11 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 
       public void set(Object instance, Object value) throws IllegalAccessException {
         field.set(instance, value);
+      }
+
+      @Override
+      Class<?> getFieldType() {
+        return field.getType();
       }
     };
   }
@@ -200,15 +209,18 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     abstract void write(JsonWriter writer, Object value) throws IOException, IllegalAccessException;
     abstract void read(JsonReader reader, Object value) throws IOException, IllegalAccessException;
     abstract void set(Object instance, Object value) throws IllegalAccessException;
+    abstract Class<?> getFieldType();
   }
 
   public static final class Adapter<T> extends TypeAdapter<T> {
     private final Gson context;
     private final ObjectConstructor<T> constructor;
     private final Map<String, BoundField> boundFields;
+    private final Type type;
 
-    Adapter(Gson context, ObjectConstructor<T> constructor, Map<String, BoundField> boundFields) {
+    Adapter(Gson context, Type type, ObjectConstructor<T> constructor, Map<String, BoundField> boundFields) {
       this.context = context;
+      this.type = type;
       this.constructor = constructor;
       this.boundFields = boundFields;
     }
@@ -229,7 +241,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           if (field == null || !field.deserialized) {
             in.skipValue();
           } else if (context instanceof SuperGson) {
-            field.set(instance, ((SuperGson) context).fromJson(in, null));
+            field.set(instance, ((SuperGson) context).fromJson(in, field.getFieldType()));
           } else {
             field.read(in, instance);
           }

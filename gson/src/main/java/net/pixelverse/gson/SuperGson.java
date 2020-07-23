@@ -200,22 +200,30 @@ public final class SuperGson extends Gson {
         try {
             reader.peek();
             isEmpty = false;
-            JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
-            typeOfT = Class.forName(json.get("type").getAsString());
-            reader = new JsonTreeReader(json);
-            reader.beginObject();
-            if (reader.nextName().equals("type")) {
-                reader.nextString();
-                reader.nextName();
+            T out;
+            JsonElement element = new JsonParser().parse(reader);
+            reader = new JsonTreeReader(element);
+            if (element.isJsonObject() && element.getAsJsonObject().has("type")) {
+                JsonObject json = element.getAsJsonObject();
+                typeOfT = Class.forName(json.get("type").getAsString());
+                reader.beginObject();
+                if (reader.nextName().equals("type")) {
+                    reader.nextString();
+                    reader.nextName();
+                }
+                TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+                TypeAdapter<T> typeAdapter = getAdapter(typeToken);
+                out = typeAdapter.read(reader);
+                while (reader.peek() != JsonToken.END_OBJECT) {
+                    reader.skipValue();
+                }
+                reader.endObject();
+            } else {
+                TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+                TypeAdapter<T> typeAdapter = getAdapter(typeToken);
+                out = typeAdapter.read(reader);
             }
-            TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
-            TypeAdapter<T> typeAdapter = getAdapter(typeToken);
-            T object = typeAdapter.read(reader);
-            while (reader.peek() != JsonToken.END_OBJECT) {
-                reader.skipValue();
-            }
-            reader.endObject();
-            return object;
+            return out;
         } catch (EOFException e) {
             /*
              * For compatibility with JSON 1.5 and earlier, we return null for empty

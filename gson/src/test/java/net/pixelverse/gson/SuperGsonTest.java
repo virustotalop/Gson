@@ -20,6 +20,11 @@ public class SuperGsonTest extends TestCase {
         assertEquals(target, out);
     }
 
+    public void testObject() {
+        TestTypes.ComplexClass complexClass = new TestTypes.ComplexClass();
+        doSerializationTest(complexClass);
+    }
+
     public void testMap() {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("list", new ArrayList<String>(Arrays.asList("hello")));

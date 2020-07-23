@@ -29,11 +29,19 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends net.pixelverse.gson.TypeAda
   private final Gson context;
   private TypeAdapter<T> delegate;
   private final Type type;
+  private boolean shouldSaveType = true;
 
   TypeAdapterRuntimeTypeWrapper(Gson context, net.pixelverse.gson.TypeAdapter<T> delegate, Type type) {
     this.context = context;
     this.delegate = delegate;
     this.type = type;
+  }
+
+  public TypeAdapterRuntimeTypeWrapper(Gson context, TypeAdapter<T> delegate, Type type, boolean shouldSaveType) {
+    this.context = context;
+    this.delegate = delegate;
+    this.type = type;
+    this.shouldSaveType = shouldSaveType;
   }
 
   @Override
