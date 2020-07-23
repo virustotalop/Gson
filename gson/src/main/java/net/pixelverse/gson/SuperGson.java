@@ -24,6 +24,7 @@ import com.google.gson.stream.JsonWriter;
 import net.pixelverse.gson.annotations.Expose;
 import net.pixelverse.gson.annotations.Since;
 import net.pixelverse.gson.internal.Excluder;
+import net.pixelverse.gson.internal.Primitives;
 import net.pixelverse.gson.reflect.TypeToken;
 
 import java.io.EOFException;
@@ -155,7 +156,7 @@ public final class SuperGson extends Gson {
         try {
             writer.beginObject();
             writer.name("type");
-            writer.value(src.getClass().getName());
+            writer.value(Primitives.toTypeName(src.getClass()));
             writer.name("data");
             ((TypeAdapter<Object>) adapter).write(writer, src);
             writer.endObject();
@@ -205,7 +206,7 @@ public final class SuperGson extends Gson {
             reader = new JsonTreeReader(element);
             if (element.isJsonObject() && element.getAsJsonObject().has("type")) {
                 JsonObject json = element.getAsJsonObject();
-                typeOfT = Class.forName(json.get("type").getAsString());
+                typeOfT = Primitives.getFromName(json.get("type").getAsString());
                 reader.beginObject();
                 if (reader.nextName().equals("type")) {
                     reader.nextString();

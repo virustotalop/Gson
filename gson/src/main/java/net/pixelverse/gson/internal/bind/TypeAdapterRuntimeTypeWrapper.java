@@ -22,6 +22,7 @@ import java.lang.reflect.TypeVariable;
 import net.pixelverse.gson.Gson;
 import net.pixelverse.gson.SuperGson;
 import net.pixelverse.gson.TypeAdapter;
+import net.pixelverse.gson.internal.Primitives;
 import net.pixelverse.gson.reflect.TypeToken;
 import com.google.gson.stream.*;
 
@@ -82,7 +83,7 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends net.pixelverse.gson.TypeAda
     if (context instanceof SuperGson && value != null && includeType) {
       out.beginObject();
       out.name("type");
-      out.value(value.getClass().getName());
+      out.value(Primitives.toTypeName(value.getClass()));
       out.name("data");
       chosen.write(out, value);
       out.endObject();

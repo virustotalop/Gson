@@ -111,6 +111,33 @@ public final class Primitives {
     return type;
   }
 
+  public static Class<?> getFromName(String name) throws ClassNotFoundException {
+    Class<?>[] classes = {
+            int.class,
+            float.class,
+            byte.class,
+            double.class,
+            long.class,
+            char.class,
+            boolean.class,
+            short.class,
+            void.class
+    };
+    for (Class<?> aClass : classes) {
+      if (aClass.getName().equals(name)) {
+        return aClass;
+      }
+    }
+    if ("str".equals(name)) {
+      return String.class;
+    }
+    return Class.forName(name);
+  }
+
+  public static String toTypeName(Class<?> clazz) {
+    return clazz == String.class ? "str" : unwrap(clazz).getName();
+  }
+
   public static boolean equals(Type class1, Type class2) {
     return wrap(class1).equals(wrap(class2));
   }

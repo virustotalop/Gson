@@ -3,6 +3,7 @@ package net.pixelverse.gson;
 import com.google.gson.JsonObject;
 import junit.framework.TestCase;
 import net.pixelverse.gson.common.TestTypes;
+import net.pixelverse.gson.internal.Primitives;
 
 import java.util.*;
 
@@ -14,10 +15,14 @@ public class SuperGsonTest extends TestCase {
         String target = "Hello";
         JsonObject json = new JsonObject();
         json.addProperty("data", target);
-        json.addProperty("type", target.getClass().getName());
+        json.addProperty("type", Primitives.toTypeName(target.getClass()));
         System.out.println(json);
         String out = gson.fromJson(json.toString());
         assertEquals(target, out);
+    }
+
+    public void testBasicInt() {
+        doSerializationTest(4);
     }
 
     public void testObject() {
