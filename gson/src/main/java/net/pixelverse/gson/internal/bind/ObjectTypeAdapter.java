@@ -16,8 +16,13 @@
 
 package net.pixelverse.gson.internal.bind;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.internal.bind.JsonTreeReader;
 import com.google.gson.stream.*;
 import net.pixelverse.gson.Gson;
+import net.pixelverse.gson.SuperGson;
 import net.pixelverse.gson.TypeAdapter;
 import net.pixelverse.gson.TypeAdapterFactory;
 import net.pixelverse.gson.internal.LinkedTreeMap;
@@ -62,6 +67,11 @@ public final class ObjectTypeAdapter extends TypeAdapter<Object> {
       return list;
 
     case BEGIN_OBJECT:
+      JsonObject element = new JsonParser().parse(in).getAsJsonObject();
+      if (gson instanceof SuperGson && element.has("type")) {
+        return ((SuperGson) gson).fromJson(new JsonTreeReader(element), Object.class);
+      }
+      in = new JsonTreeReader(element);
       Map<String, Object> map = new LinkedTreeMap<String, Object>();
       in.beginObject();
       while (in.hasNext()) {
