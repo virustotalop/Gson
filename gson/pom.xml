@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>net.pixelverse.gson</groupId>
+    <groupId>com.google.gson</groupId>
     <artifactId>gson-parent</artifactId>
     <version>2.8.7-SNAPSHOT</version>
   </parent>
@@ -30,8 +30,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <includePackageNames>net.pixelverse.gson</includePackageNames>
-          <excludePackageNames>net.pixelverse.gson.internal:net.pixelverse.gson.internal.bind</excludePackageNames>
+          <includePackageNames>com.google.gson</includePackageNames>
+          <excludePackageNames>com.google.gson.internal:com.google.gson.internal.bind</excludePackageNames>
           <links>
             <link>https://docs.oracle.com/javase/6/docs/api/</link>
           </links>

@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
-group = 'net.pixelverse.gson'
+group = 'com.google.gson'
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6

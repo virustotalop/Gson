@@ -19,7 +19,7 @@ package com.google.gson.typeadapters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
-import net.pixelverse.gson.TypeAdapterFactory;
+import com.google.gson.TypeAdapterFactory;
 import junit.framework.TestCase;
 
 public final class RuntimeTypeAdapterFactoryTest extends TestCase {
