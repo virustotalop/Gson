@@ -68,25 +68,25 @@ import com.google.gson.stream.JsonReader;
  * @author Joel Leitch
  * @author Jesse Wilson
  */
-public class GsonBuilder {
-  protected Excluder excluder = Excluder.DEFAULT;
-  protected LongSerializationPolicy longSerializationPolicy = LongSerializationPolicy.DEFAULT;
-  protected FieldNamingStrategy fieldNamingPolicy = FieldNamingPolicy.IDENTITY;
-  protected final Map<Type, InstanceCreator<?>> instanceCreators
+public final class GsonBuilder {
+  private Excluder excluder = Excluder.DEFAULT;
+  private LongSerializationPolicy longSerializationPolicy = LongSerializationPolicy.DEFAULT;
+  private FieldNamingStrategy fieldNamingPolicy = FieldNamingPolicy.IDENTITY;
+  private final Map<Type, InstanceCreator<?>> instanceCreators
       = new HashMap<Type, InstanceCreator<?>>();
-  protected final List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>();
+  private final List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>();
   /** tree-style hierarchy factories. These come after factories for backwards compatibility. */
-  protected final List<TypeAdapterFactory> hierarchyFactories = new ArrayList<TypeAdapterFactory>();
-  protected boolean serializeNulls = Gson.DEFAULT_SERIALIZE_NULLS;
-  protected String datePattern;
-  protected int dateStyle = DateFormat.DEFAULT;
-  protected int timeStyle = DateFormat.DEFAULT;
-  protected boolean complexMapKeySerialization = Gson.DEFAULT_COMPLEX_MAP_KEYS;
-  protected boolean serializeSpecialFloatingPointValues = Gson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
-  protected boolean escapeHtmlChars = Gson.DEFAULT_ESCAPE_HTML;
-  protected boolean prettyPrinting = Gson.DEFAULT_PRETTY_PRINT;
-  protected boolean generateNonExecutableJson = Gson.DEFAULT_JSON_NON_EXECUTABLE;
-  protected boolean lenient = Gson.DEFAULT_LENIENT;
+  private final List<TypeAdapterFactory> hierarchyFactories = new ArrayList<TypeAdapterFactory>();
+  private boolean serializeNulls = Gson.DEFAULT_SERIALIZE_NULLS;
+  private String datePattern;
+  private int dateStyle = DateFormat.DEFAULT;
+  private int timeStyle = DateFormat.DEFAULT;
+  private boolean complexMapKeySerialization = Gson.DEFAULT_COMPLEX_MAP_KEYS;
+  private boolean serializeSpecialFloatingPointValues = Gson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
+  private boolean escapeHtmlChars = Gson.DEFAULT_ESCAPE_HTML;
+  private boolean prettyPrinting = Gson.DEFAULT_PRETTY_PRINT;
+  private boolean generateNonExecutableJson = Gson.DEFAULT_JSON_NON_EXECUTABLE;
+  private boolean lenient = Gson.DEFAULT_LENIENT;
 
   /**
    * Creates a GsonBuilder instance that can be used to build Gson with various configuration
@@ -593,6 +593,31 @@ public class GsonBuilder {
         serializeSpecialFloatingPointValues, longSerializationPolicy,
         datePattern, dateStyle, timeStyle,
         this.factories, this.hierarchyFactories, factories);
+  }
+
+  /**
+   * Creates a {@link Gson} instance based on the current configuration. This method is free of
+   * side-effects to this {@code GsonBuilder} instance and hence can be called multiple times.
+   *
+   * @return an instance of Gson configured with the options currently set in this builder
+   */
+  public SuperGson createSuperGson() {
+    List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>(this.factories.size() + this.hierarchyFactories.size() + 3);
+    factories.addAll(this.factories);
+    Collections.reverse(factories);
+
+    List<TypeAdapterFactory> hierarchyFactories = new ArrayList<TypeAdapterFactory>(this.hierarchyFactories);
+    Collections.reverse(hierarchyFactories);
+    factories.addAll(hierarchyFactories);
+
+    addTypeAdaptersForDate(datePattern, dateStyle, timeStyle, factories);
+
+    return new SuperGson(excluder, fieldNamingPolicy, instanceCreators,
+            serializeNulls, complexMapKeySerialization,
+            generateNonExecutableJson, escapeHtmlChars, prettyPrinting, lenient,
+            serializeSpecialFloatingPointValues, longSerializationPolicy,
+            datePattern, dateStyle, timeStyle,
+            this.factories, this.hierarchyFactories, factories);
   }
 
   @SuppressWarnings("unchecked")
