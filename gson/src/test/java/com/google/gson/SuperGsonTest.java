@@ -8,7 +8,7 @@ import java.util.*;
 
 public class SuperGsonTest extends TestCase {
 
-    private SuperGson gson = new SuperGson();
+    private final Gson gson = new GsonBuilder().createSuperGson();
 
     public void testDeserializeOutOfOrder() {
         String target = "Hello";
@@ -16,7 +16,7 @@ public class SuperGsonTest extends TestCase {
         json.addProperty("data", target);
         json.addProperty("type", Primitives.toTypeName(target.getClass()));
         System.out.println(json);
-        String out = gson.fromJson(json.toString());
+        String out = gson.fromJson(json.toString(), null);
         assertEquals(target, out);
     }
 
@@ -43,7 +43,7 @@ public class SuperGsonTest extends TestCase {
     private <T> void doSerializationTest(T object) {
         String json = gson.toJson(object);
         System.out.println(json);
-        T out = gson.fromJson(json);
+        T out = gson.fromJson(json, null);
         assertEquals(object, out);
     }
 }

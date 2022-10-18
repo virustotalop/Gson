@@ -20,7 +20,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 import com.google.gson.Gson;
-import com.google.gson.SuperGson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.internal.Primitives;
 import com.google.gson.reflect.TypeToken;
@@ -80,7 +79,7 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends TypeAdapter<T> {
       }
     }
 
-    if (context instanceof SuperGson && value != null && includeType) {
+    if (context.isSuper() && value != null && includeType) {
       out.beginObject();
       out.name("type");
       out.value(Primitives.toTypeName(value.getClass()));

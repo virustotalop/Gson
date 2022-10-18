@@ -22,7 +22,6 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.reflect.ReflectionAccessor;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.SuperGson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.$Gson$Types;
@@ -240,8 +239,8 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           BoundField field = boundFields.get(name);
           if (field == null || !field.deserialized) {
             in.skipValue();
-          } else if (context instanceof SuperGson) {
-            field.set(instance, ((SuperGson) context).fromJson(in, field.getFieldType()));
+          } else if (context.isSuper()) {
+            field.set(instance, context.fromJson(in, field.getFieldType()));
           } else {
             field.read(in, instance);
           }

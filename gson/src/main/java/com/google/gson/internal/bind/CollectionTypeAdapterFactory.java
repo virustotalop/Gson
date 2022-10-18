@@ -17,7 +17,6 @@
 package com.google.gson.internal.bind;
 
 import com.google.gson.Gson;
-import com.google.gson.SuperGson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.$Gson$Types;
@@ -55,7 +54,7 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
     ObjectConstructor<T> constructor;
     Type elementType;
 
-    if (gson instanceof SuperGson) {
+    if (gson.isSuper()) {
       elementType = $Gson$Types.getCollectionElementType(type, rawType);
       elementTypeAdapter = gson.getAdapter(TypeToken.get(elementType));
       constructor = constructorConstructor.get(typeToken);
@@ -93,8 +92,8 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
       Collection<E> collection = constructor.construct();
       in.beginArray();
       while (in.hasNext()) {
-        if (context instanceof SuperGson) {
-          collection.add(((SuperGson) context).<E>fromJson(in, null));
+        if (context.isSuper()) {
+          collection.add(context.<E>fromJson(in, null));
         } else {
           E instance = elementTypeAdapter.read(in);
           collection.add(instance);

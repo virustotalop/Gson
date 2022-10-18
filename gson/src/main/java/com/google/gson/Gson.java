@@ -100,7 +100,7 @@ import com.google.gson.reflect.TypeToken;
  * @author Joel Leitch
  * @author Jesse Wilson
  */
-public class Gson {
+public final class Gson {
   static final boolean DEFAULT_JSON_NON_EXECUTABLE = false;
   static final boolean DEFAULT_LENIENT = false;
   static final boolean DEFAULT_PRETTY_PRINT = false;
@@ -145,6 +145,8 @@ public class Gson {
   final LongSerializationPolicy longSerializationPolicy;
   final List<TypeAdapterFactory> builderFactories;
   final List<TypeAdapterFactory> builderHierarchyFactories;
+
+  boolean isSuper = false;
 
   /**
    * Constructs a Gson object with default configuration. The default configuration has the
@@ -699,7 +701,16 @@ public class Gson {
     boolean oldSerializeNulls = writer.getSerializeNulls();
     writer.setSerializeNulls(serializeNulls);
     try {
-      ((TypeAdapter<Object>) adapter).write(writer, src);
+      if (isSuper) {
+        writer.beginObject();
+        writer.name("type");
+        writer.value(Primitives.toTypeName(src.getClass()));
+        writer.name("data");
+        ((TypeAdapter<Object>) adapter).write(writer, src);
+        writer.endObject();
+      } else {
+        ((TypeAdapter<Object>) adapter).write(writer, src);
+      }
     } catch (IOException e) {
       throw new JsonIOException(e);
     } catch (AssertionError e) {
@@ -813,6 +824,7 @@ public class Gson {
    */
   public <T> T fromJson(String json, Class<T> classOfT) throws JsonSyntaxException {
     Object object = fromJson(json, (Type) classOfT);
+    if (classOfT == null) return (T) object;
     return Primitives.wrap(classOfT).cast(object);
   }
 
@@ -923,6 +935,34 @@ public class Gson {
     boolean oldLenient = reader.isLenient();
     reader.setLenient(true);
     try {
+      if (isSuper) {
+        reader.peek();
+        isEmpty = false;
+        T out;
+        JsonElement element = new JsonParser().parse(reader);
+        reader = new JsonTreeReader(element);
+        if (element.isJsonObject() && element.getAsJsonObject().has("type")) {
+          JsonObject json = element.getAsJsonObject();
+          typeOfT = Primitives.getFromName(json.get("type").getAsString());
+          reader.beginObject();
+          if (reader.nextName().equals("type")) {
+            reader.nextString();
+            reader.nextName();
+          }
+          TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+          TypeAdapter<T> typeAdapter = getAdapter(typeToken);
+          out = typeAdapter.read(reader);
+          while (reader.peek() != JsonToken.END_OBJECT) {
+            reader.skipValue();
+          }
+          reader.endObject();
+        } else {
+          TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+          TypeAdapter<T> typeAdapter = getAdapter(typeToken);
+          out = typeAdapter.read(reader);
+        }
+        return out;
+      }
       reader.peek();
       isEmpty = false;
       TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
@@ -947,6 +987,8 @@ public class Gson {
       AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
       error.initCause(e);
       throw error;
+    } catch (ClassNotFoundException e) {
+      throw new JsonSyntaxException(e);
     } finally {
       reader.setLenient(oldLenient);
     }
@@ -1034,5 +1076,9 @@ public class Gson {
         .append(",instanceCreators:").append(constructorConstructor)
         .append("}")
         .toString();
+  }
+
+  public boolean isSuper() {
+    return isSuper;
   }
 }

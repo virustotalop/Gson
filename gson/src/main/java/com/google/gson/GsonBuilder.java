@@ -601,23 +601,10 @@ public final class GsonBuilder {
    *
    * @return an instance of Gson configured with the options currently set in this builder
    */
-  public SuperGson createSuperGson() {
-    List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>(this.factories.size() + this.hierarchyFactories.size() + 3);
-    factories.addAll(this.factories);
-    Collections.reverse(factories);
-
-    List<TypeAdapterFactory> hierarchyFactories = new ArrayList<TypeAdapterFactory>(this.hierarchyFactories);
-    Collections.reverse(hierarchyFactories);
-    factories.addAll(hierarchyFactories);
-
-    addTypeAdaptersForDate(datePattern, dateStyle, timeStyle, factories);
-
-    return new SuperGson(excluder, fieldNamingPolicy, instanceCreators,
-            serializeNulls, complexMapKeySerialization,
-            generateNonExecutableJson, escapeHtmlChars, prettyPrinting, lenient,
-            serializeSpecialFloatingPointValues, longSerializationPolicy,
-            datePattern, dateStyle, timeStyle,
-            this.factories, this.hierarchyFactories, factories);
+  public Gson createSuperGson() {
+    Gson gson = create();
+    gson.isSuper = true;
+    return gson;
   }
 
   @SuppressWarnings("unchecked")

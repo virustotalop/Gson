@@ -20,7 +20,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.*;
 import com.google.gson.Gson;
-import com.google.gson.SuperGson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.LinkedTreeMap;
@@ -66,8 +65,8 @@ public final class ObjectTypeAdapter extends TypeAdapter<Object> {
 
     case BEGIN_OBJECT:
       JsonObject element = new JsonParser().parse(in).getAsJsonObject();
-      if (gson instanceof SuperGson && element.has("type")) {
-        return ((SuperGson) gson).fromJson(new JsonTreeReader(element), Object.class);
+      if (gson.isSuper() && element.has("type")) {
+        return gson.fromJson(new JsonTreeReader(element), Object.class);
       }
       in = new JsonTreeReader(element);
       Map<String, Object> map = new LinkedTreeMap<String, Object>();
