@@ -93,7 +93,7 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
       in.beginArray();
       while (in.hasNext()) {
         if (context.isSuper()) {
-          collection.add(context.<E>fromJson(in, null));
+          collection.add(context.<E>fromJson(in, (Type) null));
         } else {
           E instance = elementTypeAdapter.read(in);
           collection.add(instance);

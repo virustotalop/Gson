@@ -110,67 +110,46 @@ public final class ObjectTypeAdapter extends TypeAdapter<Object> {
   }
 
   @Override public Object read(JsonReader in) throws IOException {
-    // Either List or Map
-    Object current;
-    JsonToken peeked = in.peek();
-
-    current = tryBeginNesting(in, peeked);
-    if (current == null) {
-      return readTerminal(in, peeked);
-    }
-
-    Deque<Object> stack = new ArrayDeque<>();
-
-    while (true) {
-      while (in.hasNext()) {
-        String name = null;
-        // Name is only used for JSON object members
-        if (current instanceof Map) {
-          name = in.nextName();
+    JsonToken token = in.peek();
+    switch (token) {
+      case BEGIN_ARRAY:
+        List<Object> list = new ArrayList<Object>();
+        in.beginArray();
+        while (in.hasNext()) {
+          list.add(read(in));
         }
+        in.endArray();
+        return list;
 
-        peeked = in.peek();
-        Object value = tryBeginNesting(in, peeked);
-        boolean isNesting = value != null;
-
-        if (value == null) {
-          value = readTerminal(in, peeked);
+      case BEGIN_OBJECT:
+        JsonObject element = new JsonParser().parse(in).getAsJsonObject();
+        if (gson.isSuper() && element.has("type")) {
+          return gson.fromJson(new JsonTreeReader(element), Object.class);
         }
-
-        if (current instanceof List) {
-          @SuppressWarnings("unchecked")
-          List<Object> list = (List<Object>) current;
-          list.add(value);
-        } else {
-          @SuppressWarnings("unchecked")
-          Map<String, Object> map = (Map<String, Object>) current;
-          map.put(name, value);
+        in = new JsonTreeReader(element);
+        Map<String, Object> map = new LinkedTreeMap<String, Object>();
+        in.beginObject();
+        while (in.hasNext()) {
+          map.put(in.nextName(), read(in));
         }
+        in.endObject();
+        return map;
 
-        if (isNesting) {
-          stack.addLast(current);
-          current = value;
-        }
-      }
+      case STRING:
+        return in.nextString();
 
-    case BEGIN_OBJECT:
-      JsonObject element = new JsonParser().parse(in).getAsJsonObject();
-      if (gson.isSuper() && element.has("type")) {
-        return gson.fromJson(new JsonTreeReader(element), Object.class);
-      }
-      in = new JsonTreeReader(element);
-      Map<String, Object> map = new LinkedTreeMap<String, Object>();
-      in.beginObject();
-      while (in.hasNext()) {
-        map.put(in.nextName(), read(in));
-      }
+      case NUMBER:
+        return in.nextDouble();
 
-      if (stack.isEmpty()) {
-        return current;
-      } else {
-        // Continue with enclosing element
-        current = stack.removeLast();
-      }
+      case BOOLEAN:
+        return in.nextBoolean();
+
+      case NULL:
+        in.nextNull();
+        return null;
+
+      default:
+        throw new IllegalStateException();
     }
   }
 
