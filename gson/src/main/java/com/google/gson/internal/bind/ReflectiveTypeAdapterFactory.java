@@ -17,6 +17,9 @@
 package com.google.gson.internal.bind;
 
 import com.google.gson.FieldNamingStrategy;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.internal.reflect.ReflectionAccessor;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonParseException;
@@ -25,8 +28,6 @@ import com.google.gson.ReflectionAccessFilter;
 import com.google.gson.ReflectionAccessFilter.FilterResult;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.$Gson$Types;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
@@ -39,6 +40,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
 import java.io.IOException;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
@@ -130,6 +132,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 
     ObjectConstructor<T> constructor = constructorConstructor.get(type);
     return new FieldReflectionAdapter<>(constructor, getBoundFields(gson, type, raw, blockInaccessible, false));
+    //return new Adapter<T>(gson, type.getType(), constructor, getBoundFields(gson, type, raw)); - Gson master
   }
 
   private static <M extends AccessibleObject & Member> void checkAccessible(Object object, M member) {
@@ -200,8 +203,16 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           // avoid direct recursion
           return;
         }
-        writer.name(name);
-        writeTypeAdapter.write(writer, fieldValue);
+        //writer.name(name); - Gson master
+        //writeTypeAdapter.write(writer, fieldValue);
+        Object fieldValue = field.get(value);
+        if (jsonAdapterPresent) {
+          ((TypeAdapter<Object>)typeAdapter).write(writer, fieldValue);
+        } else {
+          boolean shouldSaveType = fieldValue != null && !Primitives.wrap(field.getType()).equals(Primitives.wrap(fieldValue.getClass()));
+          TypeAdapterRuntimeTypeWrapper t = new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType.getType());
+          t.write(writer, fieldValue, shouldSaveType);
+        }
       }
 
       @Override
@@ -217,6 +228,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
       @Override
       void readIntoField(JsonReader reader, Object target)
           throws IOException, IllegalAccessException {
+        System.out.println(typeAdapter);
         Object fieldValue = typeAdapter.read(reader);
         if (fieldValue != null || !isPrimitive) {
           if (blockInaccessible) {
@@ -229,6 +241,21 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           }
           field.set(target, fieldValue);
         }
+      }
+      
+      @Override public boolean writeField(Object value) throws IOException, IllegalAccessException {
+        if (!serialized) return false;
+        Object fieldValue = field.get(value);
+        return fieldValue != value; // avoid recursion for example for Throwable.cause
+      }
+
+      public void set(Object instance, Object value) throws IllegalAccessException {
+        field.set(instance, value);
+      }
+
+      @Override
+      Class<?> getFieldType() {
+        return field.getType();
       }
     };
   }
@@ -398,6 +425,8 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           BoundField field = boundFields.get(name);
           if (field == null || !field.deserialized) {
             in.skipValue();
+          } else if (context.isSuper()) {
+            field.set(instance, context.fromJson(in, field.getFieldType()));
           } else {
             readField(accumulator, in, field);
           }

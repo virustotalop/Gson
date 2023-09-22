@@ -16,6 +16,9 @@
 
 package com.google.gson.annotations;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,9 +29,9 @@ import java.lang.annotation.Target;
  * An annotation that indicates this member should be exposed for JSON
  * serialization or deserialization.
  *
- * <p>This annotation has no effect unless you build {@link com.google.gson.Gson}
- * with a {@link com.google.gson.GsonBuilder} and invoke
- * {@link com.google.gson.GsonBuilder#excludeFieldsWithoutExposeAnnotation()}
+ * <p>This annotation has no effect unless you build {@link Gson}
+ * with a {@link GsonBuilder} and invoke
+ * {@link GsonBuilder#excludeFieldsWithoutExposeAnnotation()}
  * method.</p>
  *
  * <p>Here is an example of how this annotation is meant to be used:
@@ -62,7 +65,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Expose {
-  
+
   /**
    * If {@code true}, the field marked with this annotation is written out in the JSON while
    * serializing. If {@code false}, the field marked with this annotation is skipped from the
@@ -73,7 +76,7 @@ public @interface Expose {
 
   /**
    * If {@code true}, the field marked with this annotation is deserialized from the JSON.
-   * If {@code false}, the field marked with this annotation is skipped during deserialization. 
+   * If {@code false}, the field marked with this annotation is skipped during deserialization.
    * Defaults to {@code true}.
    * @since 1.4
    */

@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.$Gson$Types;
+import com.google.gson.internal.Primitives;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -51,8 +52,9 @@ public final class ArrayTypeAdapter<E> extends TypeAdapter<Object> {
     }
   };
 
+
   private final Class<E> componentType;
-  private final TypeAdapter<E> componentTypeAdapter;
+  private final TypeAdapterRuntimeTypeWrapper<E> componentTypeAdapter;
 
   public ArrayTypeAdapter(Gson context, TypeAdapter<E> componentTypeAdapter, Class<E> componentType) {
     this.componentTypeAdapter =
@@ -101,7 +103,7 @@ public final class ArrayTypeAdapter<E> extends TypeAdapter<Object> {
     for (int i = 0, length = Array.getLength(array); i < length; i++) {
       @SuppressWarnings("unchecked")
       E value = (E) Array.get(array, i);
-      componentTypeAdapter.write(out, value);
+      componentTypeAdapter.write(out, value, value != null && !Primitives.wrap(value.getClass()).equals(Primitives.wrap(componentType)));
     }
     out.endArray();
   }

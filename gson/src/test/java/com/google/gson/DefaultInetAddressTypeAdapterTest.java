@@ -24,7 +24,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for the default serializer/deserializer for the {@code InetAddress} type.
- * 
+ *
  * @author Joel Leitch
  */
 public class DefaultInetAddressTypeAdapterTest {

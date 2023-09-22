@@ -28,12 +28,20 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends TypeAdapter<T> {
   private final Gson context;
   private final TypeAdapter<T> delegate;
   private final Type type;
+  private boolean shouldSaveType = true;  
 
   TypeAdapterRuntimeTypeWrapper(Gson context, TypeAdapter<T> delegate, Type type) {
     this.context = context;
     this.delegate = delegate;
     this.type = type;
   }
+
+  public TypeAdapterRuntimeTypeWrapper(Gson context, TypeAdapter<T> delegate, Type type, boolean shouldSaveType) {
+    this.context = context;
+    this.delegate = delegate;
+    this.type = type;
+    this.shouldSaveType = shouldSaveType;
+  }  
 
   @Override
   public T read(JsonReader in) throws IOException {
@@ -42,6 +50,10 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends TypeAdapter<T> {
 
   @Override
   public void write(JsonWriter out, T value) throws IOException {
+    write(out, value, true);
+  }
+
+  public void write(JsonWriter out, T value, boolean includeType) throws IOException {
     // Order of preference for choosing type adapters
     // First preference: a type adapter registered for the runtime type
     // Second preference: a type adapter registered for the declared type
@@ -67,7 +79,16 @@ final class TypeAdapterRuntimeTypeWrapper<T> extends TypeAdapter<T> {
         chosen = runtimeTypeAdapter;
       }
     }
-    chosen.write(out, value);
+    if (context.isSuper() && value != null && includeType) {
+      out.beginObject();
+      out.name("type");
+      out.value(Primitives.toTypeName(value.getClass()));
+      out.name("data");
+      chosen.write(out, value);
+      out.endObject();
+    } else {
+      chosen.write(out, value);
+    }
   }
 
   /**

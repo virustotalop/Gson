@@ -16,6 +16,9 @@
 
 package com.google.gson;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+
 /**
  * This is a configurable {@link ExclusionStrategy} that can be used for
  * unit testing.

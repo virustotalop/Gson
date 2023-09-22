@@ -26,6 +26,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -49,9 +50,19 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
       return null;
     }
 
-    Type elementType = $Gson$Types.getCollectionElementType(type, rawType);
-    TypeAdapter<?> elementTypeAdapter = gson.getAdapter(TypeToken.get(elementType));
-    ObjectConstructor<T> constructor = constructorConstructor.get(typeToken);
+    TypeAdapter<?> elementTypeAdapter;
+    ObjectConstructor<T> constructor;
+    Type elementType;
+
+    if (gson.isSuper()) {
+      elementType = $Gson$Types.getCollectionElementType(type, rawType);
+      elementTypeAdapter = gson.getAdapter(TypeToken.get(elementType));
+      constructor = constructorConstructor.get(typeToken);
+    } else {
+      elementType = $Gson$Types.getCollectionElementType(type, rawType);
+      elementTypeAdapter = gson.getAdapter(TypeToken.get(elementType));
+      constructor = constructorConstructor.get(typeToken);
+    }
 
     @SuppressWarnings({"unchecked", "rawtypes"}) // create() doesn't define a type parameter
     TypeAdapter<T> result = new Adapter(gson, elementType, elementTypeAdapter, constructor);
@@ -59,12 +70,14 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
   }
 
   private static final class Adapter<E> extends TypeAdapter<Collection<E>> {
+    private final Gson context;
     private final TypeAdapter<E> elementTypeAdapter;
     private final ObjectConstructor<? extends Collection<E>> constructor;
 
     public Adapter(Gson context, Type elementType,
         TypeAdapter<E> elementTypeAdapter,
         ObjectConstructor<? extends Collection<E>> constructor) {
+      this.context = context;
       this.elementTypeAdapter =
           new TypeAdapterRuntimeTypeWrapper<>(context, elementTypeAdapter, elementType);
       this.constructor = constructor;
@@ -79,8 +92,12 @@ public final class CollectionTypeAdapterFactory implements TypeAdapterFactory {
       Collection<E> collection = constructor.construct();
       in.beginArray();
       while (in.hasNext()) {
-        E instance = elementTypeAdapter.read(in);
-        collection.add(instance);
+        if (context.isSuper()) {
+          collection.add(context.<E>fromJson(in, null));
+        } else {
+          E instance = elementTypeAdapter.read(in);
+          collection.add(instance);
+        }
       }
       in.endArray();
       return collection;

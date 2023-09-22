@@ -36,6 +36,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.google.gson.internal.JavaVersion;
+import com.google.gson.internal.PreJava9DateFormatProvider;
+import com.google.gson.internal.bind.util.ISO8601Utils;
+import com.google.gson.stream.*;
+
 /**
  * This type adapter supports subclasses of date by defining a
  * {@link DefaultDateTypeAdapter.DateType} and then using its {@code createAdapterFactory}

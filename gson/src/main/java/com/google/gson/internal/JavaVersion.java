@@ -42,7 +42,7 @@ public final class JavaVersion {
     return version;
   }
 
-  // Parses both legacy 1.8 style and newer 9.0.4 style 
+  // Parses both legacy 1.8 style and newer 9.0.4 style
   private static int parseDotted(String javaVersion) {
     try {
       String[] parts = javaVersion.split("[._]", 3);

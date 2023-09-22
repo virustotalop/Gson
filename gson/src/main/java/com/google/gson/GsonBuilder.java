@@ -52,6 +52,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.internal.$Gson$Preconditions;
+import com.google.gson.internal.Excluder;
+import com.google.gson.internal.bind.TreeTypeAdapter;
+import com.google.gson.internal.bind.TypeAdapters;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+
 /**
  * <p>Use this builder to construct a {@link Gson} instance when you need to set configuration
  * options other than the default. For {@link Gson} with default configuration, it is simpler to
@@ -96,20 +104,22 @@ public final class GsonBuilder {
   private final List<TypeAdapterFactory> factories = new ArrayList<>();
   /** tree-style hierarchy factories. These come after factories for backwards compatibility. */
   private final List<TypeAdapterFactory> hierarchyFactories = new ArrayList<>();
-  private boolean serializeNulls = DEFAULT_SERIALIZE_NULLS;
-  private String datePattern = DEFAULT_DATE_PATTERN;
+  private boolean serializeNulls = Gson.DEFAULT_SERIALIZE_NULLS;
+  private String datePattern;
   private int dateStyle = DateFormat.DEFAULT;
   private int timeStyle = DateFormat.DEFAULT;
-  private boolean complexMapKeySerialization = DEFAULT_COMPLEX_MAP_KEYS;
-  private boolean serializeSpecialFloatingPointValues = DEFAULT_SPECIALIZE_FLOAT_VALUES;
-  private boolean escapeHtmlChars = DEFAULT_ESCAPE_HTML;
+  private boolean complexMapKeySerialization = Gson.DEFAULT_COMPLEX_MAP_KEYS;
+  private boolean serializeSpecialFloatingPointValues = Gson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
+  private boolean escapeHtmlChars = Gson.DEFAULT_ESCAPE_HTML;
   private FormattingStyle formattingStyle = DEFAULT_FORMATTING_STYLE;
-  private boolean generateNonExecutableJson = DEFAULT_JSON_NON_EXECUTABLE;
   private Strictness strictness = DEFAULT_STRICTNESS;
   private boolean useJdkUnsafe = DEFAULT_USE_JDK_UNSAFE;
+  private boolean prettyPrinting = Gson.DEFAULT_PRETTY_PRINT;
+  private boolean generateNonExecutableJson = Gson.DEFAULT_JSON_NON_EXECUTABLE;
+  private boolean lenient = Gson.DEFAULT_LENIENT;
   private ToNumberStrategy objectToNumberStrategy = DEFAULT_OBJECT_TO_NUMBER_STRATEGY;
   private ToNumberStrategy numberToNumberStrategy = DEFAULT_NUMBER_TO_NUMBER_STRATEGY;
-  private final ArrayDeque<ReflectionAccessFilter> reflectionFilters = new ArrayDeque<>();
+  private final ArrayDeque<ReflectionAccessFilter> reflectionFilters = new ArrayDeque<>();  
 
   /**
    * Creates a GsonBuilder instance that can be used to build Gson with various configuration
@@ -838,7 +848,20 @@ public final class GsonBuilder {
         objectToNumberStrategy, numberToNumberStrategy, new ArrayList<>(reflectionFilters));
   }
 
-  private void addTypeAdaptersForDate(String datePattern, int dateStyle, int timeStyle,
+  /**
+   * Creates a {@link Gson} instance based on the current configuration. This method is free of
+   * side-effects to this {@code GsonBuilder} instance and hence can be called multiple times.
+   *
+   * @return an instance of Gson configured with the options currently set in this builder
+   */
+  public Gson createSuperGson() {
+    Gson gson = create();
+    gson.isSuper = true;
+    return gson;
+  }
+
+  @SuppressWarnings("unchecked")
+  public void addTypeAdaptersForDate(String datePattern, int dateStyle, int timeStyle,
       List<TypeAdapterFactory> factories) {
     TypeAdapterFactory dateAdapterFactory;
     boolean sqlTypesSupported = SqlTypesSupport.SUPPORTS_SQL_TYPES;

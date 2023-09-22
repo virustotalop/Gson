@@ -16,6 +16,9 @@
 
 package com.google.gson.internal.bind;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.*;
 import com.google.gson.Gson;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.ToNumberStrategy;
@@ -150,11 +153,16 @@ public final class ObjectTypeAdapter extends TypeAdapter<Object> {
         }
       }
 
-      // End current element
-      if (current instanceof List) {
-        in.endArray();
-      } else {
-        in.endObject();
+    case BEGIN_OBJECT:
+      JsonObject element = new JsonParser().parse(in).getAsJsonObject();
+      if (gson.isSuper() && element.has("type")) {
+        return gson.fromJson(new JsonTreeReader(element), Object.class);
+      }
+      in = new JsonTreeReader(element);
+      Map<String, Object> map = new LinkedTreeMap<String, Object>();
+      in.beginObject();
+      while (in.hasNext()) {
+        map.put(in.nextName(), read(in));
       }
 
       if (stack.isEmpty()) {

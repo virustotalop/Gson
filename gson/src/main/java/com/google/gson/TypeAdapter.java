@@ -75,7 +75,7 @@ import java.io.Writer;
  * <p>Type adapters should be prepared to read null from the stream and write it
  * to the stream. Alternatively, they should use {@link #nullSafe()} method while
  * registering the type adapter with Gson. If your {@code Gson} instance
- * has been configured to {@link GsonBuilder#serializeNulls()}, these nulls will be
+ * has been configured to {@link com.google.gson.GsonBuilder#serializeNulls()}, these nulls will be
  * written to the final document. Otherwise the value (and the corresponding name
  * when writing to a JSON object) will be omitted automatically. In either case
  * your type adapter must handle null.
@@ -130,6 +130,11 @@ public abstract class TypeAdapter<T> {
 
   /**
    * Converts {@code value} to a JSON document and writes it to {@code out}.
+   * Unlike Gson's similar {@link com.google.gson.Gson#toJson(JsonElement, Appendable) toJson}
+   * method, this write is strict. Create a {@link
+   * JsonWriter#setLenient(boolean) lenient} {@code JsonWriter} and call
+   * {@link #write(com.google.gson.stream.JsonWriter, Object)} for lenient
+   * writing.
    *
    * <p>A {@link JsonWriter} with default configuration is used for writing the
    * JSON data. To customize this behavior, create a {@link JsonWriter}, configure
@@ -201,7 +206,11 @@ public abstract class TypeAdapter<T> {
   }
 
   /**
-   * Converts {@code value} to a JSON document.
+   * Converts {@code value} to a JSON document. Unlike Gson's similar {@link
+   * com.google.gson.Gson#toJson(Object) toJson} method, this write is strict. Create a {@link
+   * JsonWriter#setLenient(boolean) lenient} {@code JsonWriter} and call
+   * {@link #write(com.google.gson.stream.JsonWriter, Object)} for lenient
+   * writing.
    *
    * <p>A {@link JsonWriter} with default configuration is used for writing the
    * JSON data. To customize this behavior, create a {@link JsonWriter}, configure
@@ -248,7 +257,10 @@ public abstract class TypeAdapter<T> {
   public abstract T read(JsonReader in) throws IOException;
 
   /**
-   * Converts the JSON document in {@code in} to a Java object.
+   * Converts the JSON document in {@code in} to a Java object. Unlike Gson's
+   * similar {@link com.google.gson.Gson#fromJson(java.io.Reader, Class) fromJson} method, this
+   * read is strict. Create a {@link JsonReader#setLenient(boolean) lenient}
+   * {@code JsonReader} and call {@link #read(JsonReader)} for lenient reading.
    *
    * <p>A {@link JsonReader} with default configuration (that is with
    * {@link Strictness#LEGACY_STRICT} as strictness) is used for reading the JSON data.

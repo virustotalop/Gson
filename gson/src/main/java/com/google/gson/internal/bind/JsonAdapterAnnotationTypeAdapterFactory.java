@@ -16,12 +16,12 @@
 
 package com.google.gson.internal.bind;
 
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
-import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.reflect.TypeToken;
 import java.util.Objects;

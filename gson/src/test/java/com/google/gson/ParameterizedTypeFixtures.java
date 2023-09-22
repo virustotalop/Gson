@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.gson.internal.$Gson$Types;
 
 import com.google.gson.internal.Primitives;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -95,7 +96,7 @@ public class ParameterizedTypeFixtures {
   }
 
   public static class MyParameterizedTypeInstanceCreator<T>
-      implements InstanceCreator<MyParameterizedType<T>>{
+      implements InstanceCreator<MyParameterizedType<T>> {
     private final T instanceOfT;
     /**
      * Caution the specified instance is reused by the instance creator for each call.
@@ -131,7 +132,7 @@ public class ParameterizedTypeFixtures {
     }
 
     @Override public JsonElement serialize(MyParameterizedType<T> src, Type classOfSrc,
-        JsonSerializationContext context) {
+                                           JsonSerializationContext context) {
       JsonObject json = new JsonObject();
       T value = src.getValue();
       json.add(value.getClass().getSimpleName(), context.serialize(value));

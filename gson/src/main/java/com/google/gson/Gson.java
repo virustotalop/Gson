@@ -62,6 +62,27 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.Since;
+import com.google.gson.internal.bind.*;
+import com.google.gson.stream.*;
+import com.google.gson.internal.ConstructorConstructor;
+import com.google.gson.internal.Excluder;
+import com.google.gson.internal.GsonBuildConfig;
+import com.google.gson.internal.Primitives;
+import com.google.gson.internal.Streams;
+import com.google.gson.internal.bind.ArrayTypeAdapter;
+import com.google.gson.internal.bind.CollectionTypeAdapterFactory;
+import com.google.gson.internal.bind.DateTypeAdapter;
+import com.google.gson.internal.bind.JsonAdapterAnnotationTypeAdapterFactory;
+import com.google.gson.internal.bind.MapTypeAdapterFactory;
+import com.google.gson.internal.bind.ObjectTypeAdapter;
+import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
+import com.google.gson.internal.bind.SqlDateTypeAdapter;
+import com.google.gson.internal.bind.TimeTypeAdapter;
+import com.google.gson.internal.bind.TypeAdapters;
+import com.google.gson.reflect.TypeToken;
+
 /**
  * This is the main class for using Gson. Gson is typically used by first constructing a
  * Gson instance and then invoking {@link #toJson(Object)} or {@link #fromJson(String, Class)}
@@ -207,6 +228,8 @@ public final class Gson {
   final ToNumberStrategy numberToNumberStrategy;
   final List<ReflectionAccessFilter> reflectionFilters;
 
+  boolean isSuper = false;
+
   /**
    * Constructs a Gson object with default configuration. The default configuration has the
    * following settings:
@@ -229,10 +252,10 @@ public final class Gson {
    *   ignores the millisecond portion of the date during serialization. You can change
    *   this by invoking {@link GsonBuilder#setDateFormat(int)} or
    *   {@link GsonBuilder#setDateFormat(String)}. </li>
-   *   <li>By default, Gson ignores the {@link com.google.gson.annotations.Expose} annotation.
+   *   <li>By default, Gson ignores the {@link Expose} annotation.
    *   You can enable Gson to serialize/deserialize only those fields marked with this annotation
    *   through {@link GsonBuilder#excludeFieldsWithoutExposeAnnotation()}. </li>
-   *   <li>By default, Gson ignores the {@link com.google.gson.annotations.Since} annotation. You
+   *   <li>By default, Gson ignores the {@link Since} annotation. You
    *   can enable Gson to use this annotation through {@link GsonBuilder#setVersion(double)}.</li>
    *   <li>The default field naming policy for the output JSON is same as in Java. So, a Java class
    *   field <code>versionNumber</code> will be output as <code>&quot;versionNumber&quot;</code> in
@@ -727,7 +750,7 @@ public final class Gson {
    *
    * @param src the object for which JSON representation is to be created
    * @param typeOfSrc The specific genericized type of src. You can obtain
-   * this type by using the {@link com.google.gson.reflect.TypeToken} class. For example,
+   * this type by using the {@link TypeToken} class. For example,
    * to get the type for {@code Collection<Foo>}, you should use:
    * <pre>
    * Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
@@ -774,7 +797,7 @@ public final class Gson {
    *
    * @param src the object for which JSON representation is to be created
    * @param typeOfSrc The specific genericized type of src. You can obtain
-   * this type by using the {@link com.google.gson.reflect.TypeToken} class. For example,
+   * this type by using the {@link TypeToken} class. For example,
    * to get the type for {@code Collection<Foo>}, you should use:
    * <pre>
    * Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
@@ -824,7 +847,7 @@ public final class Gson {
    *
    * @param src the object for which JSON representation is to be created
    * @param typeOfSrc The specific genericized type of src. You can obtain
-   * this type by using the {@link com.google.gson.reflect.TypeToken} class. For example,
+   * this type by using the {@link TypeToken} class. For example,
    * to get the type for {@code Collection<Foo>}, you should use:
    * <pre>
    * Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
@@ -883,7 +906,16 @@ public final class Gson {
     writer.setHtmlSafe(htmlSafe);
     writer.setSerializeNulls(serializeNulls);
     try {
-      adapter.write(writer, src);
+      if (isSuper) {
+        writer.beginObject();
+        writer.name("type");
+        writer.value(Primitives.toTypeName(src.getClass()));
+        writer.name("data");
+        ((TypeAdapter<Object>) adapter).write(writer, src);
+        writer.endObject();
+      } else {
+        ((TypeAdapter<Object>) adapter).write(writer, src);
+      }
     } catch (IOException e) {
       throw new JsonIOException(e);
     } catch (AssertionError e) {
@@ -1040,7 +1072,9 @@ public final class Gson {
    * @see #fromJson(String, TypeToken)
    */
   public <T> T fromJson(String json, Class<T> classOfT) throws JsonSyntaxException {
-    T object = fromJson(json, TypeToken.get(classOfT));
+    //T object = fromJson(json, TypeToken.get(classOfT)); - From main gson
+    Object object = fromJson(json, (Type) classOfT);
+    if (classOfT == null) return (T) object;
     return Primitives.wrap(classOfT).cast(object);
   }
 
@@ -1294,7 +1328,35 @@ public final class Gson {
     }
 
     try {
-      JsonToken unused = reader.peek();
+      if (isSuper) {
+        reader.peek();
+        isEmpty = false;
+        T out;
+        JsonElement element = new JsonParser().parse(reader);
+        reader = new JsonTreeReader(element);
+        if (element.isJsonObject() && element.getAsJsonObject().has("type")) {
+          JsonObject json = element.getAsJsonObject();
+          typeOfT = Primitives.getFromName(json.get("type").getAsString());
+          reader.beginObject();
+          if (reader.nextName().equals("type")) {
+            reader.nextString();
+            reader.nextName();
+          }
+          TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+          TypeAdapter<T> typeAdapter = getAdapter(typeToken);
+          out = typeAdapter.read(reader);
+          while (reader.peek() != JsonToken.END_OBJECT) {
+            reader.skipValue();
+          }
+          reader.endObject();
+        } else {
+          TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+          TypeAdapter<T> typeAdapter = getAdapter(typeToken);
+          out = typeAdapter.read(reader);
+        }
+        return out;
+      }
+      reader.peek();
       isEmpty = false;
       TypeAdapter<T> typeAdapter = getAdapter(typeOfT);
       return typeAdapter.read(reader);
@@ -1313,7 +1375,11 @@ public final class Gson {
       // TODO(inder): Figure out whether it is indeed right to rethrow this as JsonSyntaxException
       throw new JsonSyntaxException(e);
     } catch (AssertionError e) {
-      throw new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
+      error.initCause(e);
+      throw error;
+    } catch (ClassNotFoundException e) {
+      throw new JsonSyntaxException(e);
     } finally {
       reader.setStrictness(oldStrictness);
     }
@@ -1399,7 +1465,7 @@ public final class Gson {
     if (json == null) {
       return null;
     }
-    return fromJson(new JsonTreeReader(json), typeOfT);
+    return (T) fromJson(json.toString(), typeOfT);
   }
 
   /**
@@ -1451,5 +1517,9 @@ public final class Gson {
         + ",factories:" + factories
         + ",instanceCreators:" + constructorConstructor
         + "}";
+  }
+
+  public boolean isSuper() {
+    return isSuper;
   }
 }

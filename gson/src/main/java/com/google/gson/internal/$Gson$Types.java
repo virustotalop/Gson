@@ -28,13 +28,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Static methods for working with types.
@@ -141,7 +135,7 @@ public final class $Gson$Types {
       // getRawType() returns Type instead of Class; that seems to be an API mistake,
       // see https://bugs.openjdk.org/browse/JDK-8250659
       Type rawType = parameterizedType.getRawType();
-      checkArgument(rawType instanceof Class);
+      $Gson$Preconditions.checkArgument(rawType instanceof Class);
       return (Class<?>) rawType;
 
     } else if (type instanceof GenericArrayType) {
@@ -286,7 +280,7 @@ public final class $Gson$Types {
       assert bounds.length == 1;
       context = bounds[0];
     }
-    checkArgument(supertype.isAssignableFrom(contextRawType));
+    $Gson$Preconditions.checkArgument(supertype.isAssignableFrom(contextRawType));
     return resolve(context, contextRawType,
         $Gson$Types.getGenericSupertype(context, contextRawType, supertype));
   }
@@ -477,7 +471,7 @@ public final class $Gson$Types {
   }
 
   static void checkNotPrimitive(Type type) {
-    checkArgument(!(type instanceof Class<?>) || !((Class<?>) type).isPrimitive());
+    $Gson$Preconditions.checkArgument(!(type instanceof Class<?>) || !((Class<?>) type).isPrimitive());
   }
 
   /**
@@ -502,18 +496,19 @@ public final class $Gson$Types {
     private final Type[] typeArguments;
 
     public ParameterizedTypeImpl(Type ownerType, Type rawType, Type... typeArguments) {
-      // TODO: Should this enforce that rawType is a Class? See JDK implementation of
-      // the ParameterizedType interface and https://bugs.openjdk.org/browse/JDK-8250659
-      requireNonNull(rawType);
-      if (ownerType == null && requiresOwnerType(rawType)) {
-        throw new IllegalArgumentException("Must specify owner type for " + rawType);
+      // require an owner type if the raw type needs it
+      if (rawType instanceof Class<?>) {
+        Class<?> rawTypeAsClass = (Class<?>) rawType;
+        boolean isStaticOrTopLevelClass = Modifier.isStatic(rawTypeAsClass.getModifiers())
+            || rawTypeAsClass.getEnclosingClass() == null;
+        $Gson$Preconditions.checkArgument(ownerType != null || isStaticOrTopLevelClass);
       }
 
       this.ownerType = ownerType == null ? null : canonicalize(ownerType);
       this.rawType = canonicalize(rawType);
       this.typeArguments = typeArguments.clone();
       for (int t = 0, length = this.typeArguments.length; t < length; t++) {
-        requireNonNull(this.typeArguments[t]);
+        $Gson$Preconditions.checkNotNull(this.typeArguments[t]);
         checkNotPrimitive(this.typeArguments[t]);
         this.typeArguments[t] = canonicalize(this.typeArguments[t]);
       }
@@ -602,18 +597,18 @@ public final class $Gson$Types {
     private final Type lowerBound;
 
     public WildcardTypeImpl(Type[] upperBounds, Type[] lowerBounds) {
-      checkArgument(lowerBounds.length <= 1);
-      checkArgument(upperBounds.length == 1);
+      $Gson$Preconditions.checkArgument(lowerBounds.length <= 1);
+      $Gson$Preconditions.checkArgument(upperBounds.length == 1);
 
       if (lowerBounds.length == 1) {
-        requireNonNull(lowerBounds[0]);
+        $Gson$Preconditions.checkNotNull(lowerBounds[0]);
         checkNotPrimitive(lowerBounds[0]);
-        checkArgument(upperBounds[0] == Object.class);
+        $Gson$Preconditions.checkArgument(upperBounds[0] == Object.class);
         this.lowerBound = canonicalize(lowerBounds[0]);
         this.upperBound = Object.class;
 
       } else {
-        requireNonNull(upperBounds[0]);
+        $Gson$Preconditions.checkNotNull(upperBounds[0]);
         checkNotPrimitive(upperBounds[0]);
         this.lowerBound = null;
         this.upperBound = canonicalize(upperBounds[0]);

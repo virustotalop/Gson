@@ -75,6 +75,19 @@ public final class Primitives {
     return type;
   }
 
+  public static Type wrap(Type type) {
+    if (type == int.class) return Integer.class;
+    if (type == float.class) return Float.class;
+    if (type == byte.class) return Byte.class;
+    if (type == double.class) return Double.class;
+    if (type == long.class) return Long.class;
+    if (type == char.class) return Character.class;
+    if (type == boolean.class) return Boolean.class;
+    if (type == short.class) return Short.class;
+    if (type == void.class) return Void.class;
+    return type;
+  }
+
   /**
    * Returns the corresponding primitive type of {@code type} if it is a
    * wrapper type; otherwise returns {@code type} itself. Idempotent.
@@ -96,5 +109,36 @@ public final class Primitives {
     if (type == Short.class) return (Class<T>) short.class;
     if (type == Void.class) return (Class<T>) void.class;
     return type;
+  }
+
+  public static Class<?> getFromName(String name) throws ClassNotFoundException {
+    Class<?>[] classes = {
+            int.class,
+            float.class,
+            byte.class,
+            double.class,
+            long.class,
+            char.class,
+            boolean.class,
+            short.class,
+            void.class
+    };
+    for (Class<?> aClass : classes) {
+      if (aClass.getName().equals(name)) {
+        return aClass;
+      }
+    }
+    if ("str".equals(name)) {
+      return String.class;
+    }
+    return Class.forName(name);
+  }
+
+  public static String toTypeName(Class<?> clazz) {
+    return clazz == String.class ? "str" : unwrap(clazz).getName();
+  }
+
+  public static boolean equals(Type class1, Type class2) {
+    return wrap(class1).equals(wrap(class2));
   }
 }

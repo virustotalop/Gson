@@ -2265,13 +2265,13 @@ public final class JsonReaderTest {
     JsonReader reader = new JsonReader(reader(document));
     reader.setStrictness(Strictness.LENIENT);
     for (Object expectation : expectations) {
-      if (expectation == BEGIN_OBJECT) {
+      if (expectation == JsonToken.BEGIN_OBJECT) {
         reader.beginObject();
-      } else if (expectation == BEGIN_ARRAY) {
+      } else if (expectation == JsonToken.BEGIN_ARRAY) {
         reader.beginArray();
-      } else if (expectation == END_OBJECT) {
+      } else if (expectation == JsonToken.END_OBJECT) {
         reader.endObject();
-      } else if (expectation == END_ARRAY) {
+      } else if (expectation == JsonToken.END_ARRAY) {
         reader.endArray();
       } else if (expectation == NAME) {
         assertThat(reader.nextName()).isEqualTo("name");

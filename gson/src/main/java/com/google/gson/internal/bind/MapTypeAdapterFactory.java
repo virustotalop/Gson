@@ -16,21 +16,19 @@
 
 package com.google.gson.internal.bind;
 
+import com.google.gson.internal.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
-import com.google.gson.internal.$Gson$Types;
-import com.google.gson.internal.ConstructorConstructor;
-import com.google.gson.internal.JsonReaderInternalAccess;
-import com.google.gson.internal.ObjectConstructor;
-import com.google.gson.internal.Streams;
+import com.google.gson.internal.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -142,15 +140,19 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
   }
 
   private final class Adapter<K, V> extends TypeAdapter<Map<K, V>> {
+    private final Gson context;
     private final TypeAdapter<K> keyTypeAdapter;
-    private final TypeAdapter<V> valueTypeAdapter;
+    private final TypeAdapterRuntimeTypeWrapper<V> valueTypeAdapter;
+    private final Type valueType;
     private final ObjectConstructor<? extends Map<K, V>> constructor;
 
     public Adapter(Gson context, Type keyType, TypeAdapter<K> keyTypeAdapter,
         Type valueType, TypeAdapter<V> valueTypeAdapter,
         ObjectConstructor<? extends Map<K, V>> constructor) {
+      this.context = context;
       this.keyTypeAdapter =
-        new TypeAdapterRuntimeTypeWrapper<>(context, keyTypeAdapter, keyType);
+        new TypeAdapterRuntimeTypeWrapper<K>(context, keyTypeAdapter, keyType);
+      this.valueType = valueType;
       this.valueTypeAdapter =
         new TypeAdapterRuntimeTypeWrapper<>(context, valueTypeAdapter, valueType);
       this.constructor = constructor;
@@ -170,7 +172,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
         while (in.hasNext()) {
           in.beginArray(); // entry array
           K key = keyTypeAdapter.read(in);
-          V value = valueTypeAdapter.read(in);
+          V value = parseValue(in);
           V replaced = map.put(key, value);
           if (replaced != null) {
             throw new JsonSyntaxException("duplicate key: " + key);
@@ -183,7 +185,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
         while (in.hasNext()) {
           JsonReaderInternalAccess.INSTANCE.promoteNameToValue(in);
           K key = keyTypeAdapter.read(in);
-          V value = valueTypeAdapter.read(in);
+          V value = parseValue(in);
           V replaced = map.put(key, value);
           if (replaced != null) {
             throw new JsonSyntaxException("duplicate key: " + key);
@@ -192,6 +194,14 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
         in.endObject();
       }
       return map;
+    }
+
+    private V parseValue(JsonReader in) throws IOException {
+      if (context.isSuper()) {
+        return context.fromJson(in, valueType);
+      } else {
+        return valueTypeAdapter.read(in);
+      }
     }
 
     @Override public void write(JsonWriter out, Map<K, V> map) throws IOException {

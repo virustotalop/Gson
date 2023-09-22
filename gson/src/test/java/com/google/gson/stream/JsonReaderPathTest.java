@@ -23,10 +23,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.Strictness;
 import com.google.gson.internal.Streams;
 import com.google.gson.internal.bind.JsonTreeReader;
+import com.google.gson.internal.Streams;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -200,7 +203,6 @@ public class JsonReaderPathTest {
 
   @Test public void multipleTopLevelValuesInOneDocument() throws IOException {
     assumeTrue(factory == Factory.STRING_READER);
-
     JsonReader reader = factory.create("[][]");
     reader.setStrictness(Strictness.LENIENT);
     reader.beginArray();

@@ -16,7 +16,9 @@
 
 package com.google.gson.annotations;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

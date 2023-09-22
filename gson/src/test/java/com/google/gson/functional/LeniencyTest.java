@@ -21,6 +21,7 @@ import static java.util.Collections.singletonList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;

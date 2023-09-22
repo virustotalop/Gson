@@ -17,6 +17,10 @@
 package com.google.gson.common;
 
 import com.google.common.base.Objects;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collection;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -218,6 +222,21 @@ public class TestTypes {
       sb.append("]}");
       return sb.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof PrimitiveArray)) return false;
+
+      PrimitiveArray that = (PrimitiveArray) o;
+
+      return Arrays.equals(longArray, that.longArray);
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(longArray);
+    }
   }
 
   // for missing hashCode() override
@@ -410,6 +429,20 @@ public class TestTypes {
     public Long deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
         throws JsonParseException {
       return json.getAsLong() - DIFFERENCE;
+    }
+  }
+
+  public static class ComplexClass {
+    private PrimitiveArray array = new PrimitiveArray(new long[] { 2, 4, 8 });
+    private int achieved = 90;
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof ComplexClass)) return false;
+      ComplexClass that = (ComplexClass) o;
+      return achieved == that.achieved &&
+              array.equals(that.array);
     }
   }
 }

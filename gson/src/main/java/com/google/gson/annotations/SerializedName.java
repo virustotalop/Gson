@@ -16,6 +16,9 @@
 
 package com.google.gson.annotations;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,9 +30,9 @@ import java.lang.annotation.Target;
  * the provided name value as its field name.
  *
  * <p>This annotation will override any {@link com.google.gson.FieldNamingPolicy}, including
- * the default field naming policy, that may have been set on the {@link com.google.gson.Gson}
+ * the default field naming policy, that may have been set on the {@link Gson}
  * instance. A different naming policy can set using the {@code GsonBuilder} class. See
- * {@link com.google.gson.GsonBuilder#setFieldNamingPolicy(com.google.gson.FieldNamingPolicy)}
+ * {@link GsonBuilder#setFieldNamingPolicy(com.google.gson.FieldNamingPolicy)}
  * for more information.</p>
  *
  * <p>Here is an example of how this annotation is meant to be used:</p>

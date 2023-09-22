@@ -19,7 +19,6 @@ package com.google.gson;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.gson.common.TestTypes.BagOfPrimitives;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import java.io.CharArrayReader;
@@ -156,9 +155,9 @@ public class JsonParserTest {
   public void testReadWriteTwoObjects() throws Exception {
     Gson gson = new Gson();
     CharArrayWriter writer = new CharArrayWriter();
-    BagOfPrimitives expectedOne = new BagOfPrimitives(1, 1, true, "one");
+    TestTypes.BagOfPrimitives expectedOne = new TestTypes.BagOfPrimitives(1, 1, true, "one");
     writer.write(gson.toJson(expectedOne).toCharArray());
-    BagOfPrimitives expectedTwo = new BagOfPrimitives(2, 2, false, "two");
+    TestTypes.BagOfPrimitives expectedTwo = new TestTypes.BagOfPrimitives(2, 2, false, "two");
     writer.write(gson.toJson(expectedTwo).toCharArray());
     CharArrayReader reader = new CharArrayReader(writer.toCharArray());
 

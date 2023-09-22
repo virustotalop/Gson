@@ -28,6 +28,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.junit.Test;
+import com.google.gson.stream.*;
 
 @SuppressWarnings("resource")
 public final class JsonWriterTest {
